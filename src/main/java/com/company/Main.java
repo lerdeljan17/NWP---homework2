@@ -2,16 +2,10 @@ package com.company;
 
 import com.company.annotations.Autowired;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-
 public class Main {
 
 
-
-    public static void main(String[] strings){
+    public static void main(String[] strings) {
 
 //        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
 //       @SuppressWarnings("rawtypes")
@@ -43,13 +37,18 @@ public class Main {
 
         Test t = new Test();
         DI_Engine di_engine = new DI_Engine(t);
-        System.out.println(t.predmet.getS());
+        System.out.println(t.getPredmet().getS());
 
 
     }
 
 }
-class Test{
+
+class Test {
     @Autowired(verbose = true)
-    public Predmet predmet;
+    private Predmet predmet;
+
+    public Predmet getPredmet() {
+        return predmet;
+    }
 }

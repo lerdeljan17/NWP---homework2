@@ -6,7 +6,7 @@ import com.company.annotations.Bean;
 @Bean
 public class Predmet {
     @Autowired(verbose = true)
-    public Student s;
+    private Student s;
 
     public int getS() {
         return s.hashCode();

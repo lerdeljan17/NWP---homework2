@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.URL;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,6 +19,7 @@ public class DI_Engine {
     private ArrayList<String> myClasses = new ArrayList<>();
     private HashMap<String, Object> singletons = new HashMap<>();
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+    Dependency_Supplier dependency_supplier;
     private Object rootInstace;
     public DI_Engine(Object o) {
         this.rootInstace = o;
@@ -38,7 +40,7 @@ public class DI_Engine {
             e.printStackTrace();
         }
 
-
+        dependency_supplier = new Dependency_Supplier(classNames);
         scanFile("com.company.Test",rootInstace);
 
 
@@ -73,13 +75,26 @@ public class DI_Engine {
             for (Field f : fields) {
                 if (f.getAnnotation(Autowired.class) != null) {
                     if (!singletons.containsKey(f.getType().getName())) {
+                        String type = f.getType().getName();
                         //f.set(o, );
-                        value = scanFile(f.getType().getName(),o);
+                        if(f.getType().isInterface()){
+                            if (f.getAnnotation(Qualifier.class) != null){
+                               String qualifier = ((Qualifier)f.getAnnotation(Qualifier.class)).value();
+//                                System.out.println(f.getType().getName());
+                                type = dependency_supplier.getInterfaces().get(f.getType().getName()).get(qualifier);
+                            }else {
+                                // TODO: 3.11.2020. exception
+                                System.out.println("missing qualifier annot");
+                            }
+
+                        }
+                        value = scanFile(type,o);
                         System.out.println("------------------------");
                         System.out.println("value " + value.getClass().getName() + " "+  value.hashCode());
                         System.out.println("object " + o.getClass().getName() + " "+  o.hashCode());
                         System.out.println("------------------------");
                         fieldMap.putIfAbsent(f.getName(),value);
+                        if(f.getAnnotation(Autowired.class).verbose())printAutowired(f,value,cl);
                         //f.set(o,value);
                     } else {
                         fieldMap.putIfAbsent(f.getName(),singletons.get(f.getType().getName()));
@@ -98,12 +113,14 @@ public class DI_Engine {
                 } else if (((Bean) cl.getAnnotation(Bean.class)).scope() == Scope.Prototype || cl.getAnnotation(Component.class) != null) {
                     o = cl.newInstance();
                 } else {
+                    // TODO: 3.11.2020. exception
                     System.out.println("ovde treba izuzetak da ispali posto nema bean ni nista drugo");
 
                 }
             }
 
             for (Field field : fields) {
+                field.setAccessible(true);
                 if(fieldMap.containsKey(field.getName())){
                 field.set(o,fieldMap.get(field.getName()));}
             }
@@ -132,5 +149,10 @@ public class DI_Engine {
 
             }
         }
+    }
+
+    public void printAutowired(Field f, Object object, Class cl){
+        System.out.println("Initialized" + " " +  f.getType() + " " + f.getName() +" in " + cl.getName() + " " + LocalDateTime.now().format(formatter) + " with " + object.hashCode());
+
     }
 }

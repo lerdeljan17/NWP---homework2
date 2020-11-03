@@ -7,5 +7,5 @@ import com.company.annotations.Scope;
 @Bean(scope = Scope.Prototype)
 public class Student {
     @Autowired(verbose = true)
-    public Profesor p;
+    private Profesor p;
 }
