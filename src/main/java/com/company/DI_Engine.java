@@ -108,6 +108,9 @@ public class DI_Engine {
                         //f.set(o,value);
                     } else {
                         fieldMap.putIfAbsent(f.getName(), singletons.get(f.getType().getName()));
+                        value = singletons.get(f.getType().getName());
+                        if (f.getAnnotation(Autowired.class).verbose()) printAutowired(f, value, cl);
+
                         //f.set(o, singletons.get(f.getType().getName()));
                     }
                 }
