@@ -1,6 +1,10 @@
 package com.company;
 
 import com.company.annotations.Autowired;
+import com.company.exceptions.MissingAnnotationException;
+import com.company.exceptions.MissingImplementation;
+import com.company.exceptions.MissingQualifierAnnot;
+import com.company.exceptions.MultipleQualifierException;
 
 public class Main {
 
@@ -36,7 +40,11 @@ public class Main {
 
 
         Test t = new Test();
-        DI_Engine di_engine = new DI_Engine(t);
+        try {
+            DI_Engine di_engine = new DI_Engine(t);
+        } catch (MissingAnnotationException | MissingQualifierAnnot | MissingImplementation | MultipleQualifierException e) {
+            e.printStackTrace();
+        }
         System.out.println(t.getPredmet().getS());
 
 

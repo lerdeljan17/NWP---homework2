@@ -4,6 +4,7 @@ import com.company.annotations.Bean;
 import com.company.annotations.Component;
 import com.company.annotations.Qualifier;
 import com.company.annotations.Service;
+import com.company.exceptions.MultipleQualifierException;
 import org.reflections.Reflections;
 
 import java.util.ArrayList;
@@ -15,7 +16,7 @@ public class Dependency_Supplier {
     private ArrayList<String> classNames = new ArrayList<>();
     private HashMap<String, HashMap<String,String>> interfaces = new HashMap<>();
 
-    public Dependency_Supplier(ArrayList<String> classNames) {
+    public Dependency_Supplier(ArrayList<String> classNames) throws MultipleQualifierException {
         this.classNames = classNames;
         Class cl = null;
         for (String className : classNames) {
@@ -34,6 +35,7 @@ public class Dependency_Supplier {
                             Object o = classesToAdd.putIfAbsent(key,c.getName());
                             if(o != null){
                                 // TODO: 3.11.2020. exception vise beanova sa istim qualifierom
+                                throw new MultipleQualifierException(key);
                                 }
                         }
                     }

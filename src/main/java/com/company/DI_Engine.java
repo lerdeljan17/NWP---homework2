@@ -1,6 +1,10 @@
 package com.company;
 
 import com.company.annotations.*;
+import com.company.exceptions.MissingAnnotationException;
+import com.company.exceptions.MissingImplementation;
+import com.company.exceptions.MissingQualifierAnnot;
+import com.company.exceptions.MultipleQualifierException;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,7 +25,8 @@ public class DI_Engine {
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
     Dependency_Supplier dependency_supplier;
     private Object rootInstace;
-    public DI_Engine(Object o) {
+
+    public DI_Engine(Object o) throws MissingAnnotationException, MissingQualifierAnnot, MissingImplementation, MultipleQualifierException {
         this.rootInstace = o;
 //        projectPath = System.getProperty("user.dir");
 //        System.out.println(projectPath);
@@ -41,7 +46,7 @@ public class DI_Engine {
         }
 
         dependency_supplier = new Dependency_Supplier(classNames);
-        scanFile("com.company.Test",rootInstace);
+        scanFile("com.company.Test", rootInstace);
 
 
 //        try {
@@ -61,10 +66,10 @@ public class DI_Engine {
 
     }
 
-    public Object scanFile(String className,Object o) {
+    public Object scanFile(String className, Object o) throws MissingAnnotationException, MissingQualifierAnnot, MissingImplementation {
         @SuppressWarnings("rawtypes")
         Class cl = null;
-        HashMap<String,Object> fieldMap = null;
+        HashMap<String, Object> fieldMap = null;
         Field[] fields = new Field[0];
         try {
             cl = Class.forName(className);
@@ -77,27 +82,33 @@ public class DI_Engine {
                     if (!singletons.containsKey(f.getType().getName())) {
                         String type = f.getType().getName();
                         //f.set(o, );
-                        if(f.getType().isInterface()){
-                            if (f.getAnnotation(Qualifier.class) != null){
-                               String qualifier = ((Qualifier)f.getAnnotation(Qualifier.class)).value();
+                        if (f.getType().isInterface()) {
+                            if (f.getAnnotation(Qualifier.class) != null) {
+                                String qualifier = ((Qualifier) f.getAnnotation(Qualifier.class)).value();
 //                                System.out.println(f.getType().getName());
-                                type = dependency_supplier.getInterfaces().get(f.getType().getName()).get(qualifier);
-                            }else {
+                                if(dependency_supplier.getInterfaces().get(f.getType().getName()).containsKey(qualifier)){
+                                    type = dependency_supplier.getInterfaces().get(f.getType().getName()).get(qualifier);
+                                }else {
+                                    throw new MissingImplementation(qualifier);
+                                }
+
+                            } else {
                                 // TODO: 3.11.2020. exception
                                 System.out.println("missing qualifier annot");
+                                throw new MissingQualifierAnnot( f.getType() + " " + f.getName());
                             }
 
                         }
-                        value = scanFile(type,o);
+                        value = scanFile(type, o);
                         System.out.println("------------------------");
-                        System.out.println("value " + value.getClass().getName() + " "+  value.hashCode());
-                        System.out.println("object " + o.getClass().getName() + " "+  o.hashCode());
+                        System.out.println("value " + value.getClass().getName() + " " + value.hashCode());
+                        System.out.println("object " + o.getClass().getName() + " " + o.hashCode());
                         System.out.println("------------------------");
-                        fieldMap.putIfAbsent(f.getName(),value);
-                        if(f.getAnnotation(Autowired.class).verbose())printAutowired(f,value,cl);
+                        fieldMap.putIfAbsent(f.getName(), value);
+                        if (f.getAnnotation(Autowired.class).verbose()) printAutowired(f, value, cl);
                         //f.set(o,value);
                     } else {
-                        fieldMap.putIfAbsent(f.getName(),singletons.get(f.getType().getName()));
+                        fieldMap.putIfAbsent(f.getName(), singletons.get(f.getType().getName()));
                         //f.set(o, singletons.get(f.getType().getName()));
                     }
                 }
@@ -105,24 +116,31 @@ public class DI_Engine {
 
             }
 
+//            System.out.println(cl.getName());
+//            System.out.println(rootInstace.getClass().getName());
+            if (!this.rootInstace.getClass().getName().equals(cl.getName()) ) {
+                if (cl.getAnnotation(Bean.class) != null || cl.getAnnotation(Service.class) != null || cl.getAnnotation(Component.class) != null) {
+                    if (cl.getAnnotation(Service.class) != null || ((Bean) cl.getAnnotation(Bean.class)).scope() == Scope.Singleton) {
+                        singletons.putIfAbsent(cl.getName(), cl.newInstance());
+                        o = singletons.get(cl.getName());
+                    } else if (cl.getAnnotation(Component.class) != null || ((Bean) cl.getAnnotation(Bean.class)).scope() == Scope.Prototype) {
+                        o = cl.newInstance();
+                    } else {
 
-            if (cl.getAnnotation(Bean.class) != null || cl.getAnnotation(Service.class) != null || cl.getAnnotation(Component.class) != null) {
-                if (((Bean) cl.getAnnotation(Bean.class)).scope() == Scope.Singleton || cl.getAnnotation(Service.class) != null) {
-                    singletons.putIfAbsent(cl.getName(), cl.newInstance());
-                    o = singletons.get(cl.getName());
-                } else if (((Bean) cl.getAnnotation(Bean.class)).scope() == Scope.Prototype || cl.getAnnotation(Component.class) != null) {
-                    o = cl.newInstance();
+                    }
                 } else {
-                    // TODO: 3.11.2020. exception
-                    System.out.println("ovde treba izuzetak da ispali posto nema bean ni nista drugo");
 
+                    // TODO: 3.11.2020. exception
+                    //System.out.println("ovde treba izuzetak da ispali posto nema bean ni nista drugo");
+                    throw new MissingAnnotationException(cl.getName());
                 }
             }
 
             for (Field field : fields) {
                 field.setAccessible(true);
-                if(fieldMap.containsKey(field.getName())){
-                field.set(o,fieldMap.get(field.getName()));}
+                if (fieldMap.containsKey(field.getName())) {
+                    field.set(o, fieldMap.get(field.getName()));
+                }
             }
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
             e.printStackTrace();
@@ -151,8 +169,8 @@ public class DI_Engine {
         }
     }
 
-    public void printAutowired(Field f, Object object, Class cl){
-        System.out.println("Initialized" + " " +  f.getType() + " " + f.getName() +" in " + cl.getName() + " " + LocalDateTime.now().format(formatter) + " with " + object.hashCode());
+    public void printAutowired(Field f, Object object, Class cl) {
+        System.out.println("Initialized" + " " + f.getType() + " " + f.getName() + " in " + cl.getName() + " " + LocalDateTime.now().format(formatter) + " with " + object.hashCode());
 
     }
 }
