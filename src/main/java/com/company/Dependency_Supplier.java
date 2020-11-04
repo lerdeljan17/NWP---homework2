@@ -5,16 +5,14 @@ import com.company.annotations.Component;
 import com.company.annotations.Qualifier;
 import com.company.annotations.Service;
 import com.company.exceptions.MultipleQualifierException;
-import org.reflections.Reflections;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Set;
 
 public class Dependency_Supplier {
     private ArrayList<String> classNames = new ArrayList<>();
-    private HashMap<String, HashMap<String,String>> interfaces = new HashMap<>();
+    private final HashMap<String, HashMap<String, String>> interfaces = new HashMap<>();
 
     public Dependency_Supplier(ArrayList<String> classNames) throws MultipleQualifierException {
         this.classNames = classNames;
@@ -22,29 +20,28 @@ public class Dependency_Supplier {
         for (String className : classNames) {
             try {
                 cl = Class.forName(className);
-                if(cl.isInterface() && (cl.getAnnotation(Bean.class) !=null || cl.getAnnotation(Service.class) !=null || cl.getAnnotation(Component.class) !=null)){
+                if (cl.isInterface() && (cl.getAnnotation(Bean.class) != null || cl.getAnnotation(Service.class) != null || cl.getAnnotation(Component.class) != null)) {
                     String interFace = className;
-                    HashMap<String,String> classesToAdd = new HashMap<>();
+                    HashMap<String, String> classesToAdd = new HashMap<>();
                     for (String name : classNames) {
                         Class c = Class.forName(name);
-                        if(c.getAnnotation(Qualifier.class) != null && Arrays.toString(c.getInterfaces()).contains(cl.getName())){
+                        if (c.getAnnotation(Qualifier.class) != null && Arrays.toString(c.getInterfaces()).contains(cl.getName())) {
                             //System.out.println(Arrays.toString(c.getInterfaces()));
-                            String key = ((Qualifier)c.getAnnotation(Qualifier.class)).value();
+                            String key = ((Qualifier) c.getAnnotation(Qualifier.class)).value();
                             //System.out.println("kkey" + key);
 
-                            Object o = classesToAdd.putIfAbsent(key,c.getName());
-                            if(o != null){
-                                // TODO: 3.11.2020. exception vise beanova sa istim qualifierom
+                            Object o = classesToAdd.putIfAbsent(key, c.getName());
+                            if (o != null) {
                                 throw new MultipleQualifierException(key);
-                                }
+                            }
                         }
                     }
 
-                    interfaces.putIfAbsent(cl.getName(),classesToAdd);
+                    interfaces.putIfAbsent(cl.getName(), classesToAdd);
 
 
                 }
-            } catch (ClassNotFoundException  e) {
+            } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }
 

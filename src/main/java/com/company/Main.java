@@ -45,7 +45,7 @@ public class Main {
         } catch (MissingAnnotationException | MissingQualifierAnnot | MissingImplementation | MultipleQualifierException e) {
             e.printStackTrace();
         }
-        System.out.println(t.getPredmet().getS());
+        //System.out.println(t.getPredmet().getS());
 
 
     }

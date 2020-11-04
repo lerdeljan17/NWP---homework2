@@ -19,12 +19,12 @@ import java.util.HashMap;
 
 public class DI_Engine {
     //    private String projectPath;
-    private ArrayList<String> classNames = new ArrayList<>();
-    private ArrayList<String> myClasses = new ArrayList<>();
-    private HashMap<String, Object> singletons = new HashMap<>();
+    private final ArrayList<String> classNames = new ArrayList<>();
+    private final ArrayList<String> myClasses = new ArrayList<>();
+    private final HashMap<String, Object> singletons = new HashMap<>();
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
     Dependency_Supplier dependency_supplier;
-    private Object rootInstace;
+    private final Object rootInstace;
 
     public DI_Engine(Object o) throws MissingAnnotationException, MissingQualifierAnnot, MissingImplementation, MultipleQualifierException {
         this.rootInstace = o;
@@ -84,26 +84,25 @@ public class DI_Engine {
                         //f.set(o, );
                         if (f.getType().isInterface()) {
                             if (f.getAnnotation(Qualifier.class) != null) {
-                                String qualifier = ((Qualifier) f.getAnnotation(Qualifier.class)).value();
+                                String qualifier = f.getAnnotation(Qualifier.class).value();
 //                                System.out.println(f.getType().getName());
-                                if(dependency_supplier.getInterfaces().get(f.getType().getName()).containsKey(qualifier)){
+                                if (dependency_supplier.getInterfaces().get(f.getType().getName()).containsKey(qualifier)) {
                                     type = dependency_supplier.getInterfaces().get(f.getType().getName()).get(qualifier);
-                                }else {
+                                } else {
                                     throw new MissingImplementation(qualifier);
                                 }
 
                             } else {
-                                // TODO: 3.11.2020. exception
                                 System.out.println("missing qualifier annot");
-                                throw new MissingQualifierAnnot( f.getType() + " " + f.getName());
+                                throw new MissingQualifierAnnot(f.getType() + " " + f.getName());
                             }
 
                         }
                         value = scanFile(type, o);
-                        System.out.println("------------------------");
-                        System.out.println("value " + value.getClass().getName() + " " + value.hashCode());
-                        System.out.println("object " + o.getClass().getName() + " " + o.hashCode());
-                        System.out.println("------------------------");
+//                        System.out.println("------------------------");
+//                        System.out.println("value " + value.getClass().getName() + " " + value.hashCode());
+//                        System.out.println("object " + o.getClass().getName() + " " + o.hashCode());
+//                        System.out.println("------------------------");
                         fieldMap.putIfAbsent(f.getName(), value);
                         if (f.getAnnotation(Autowired.class).verbose()) printAutowired(f, value, cl);
                         //f.set(o,value);
@@ -118,7 +117,7 @@ public class DI_Engine {
 
 //            System.out.println(cl.getName());
 //            System.out.println(rootInstace.getClass().getName());
-            if (!this.rootInstace.getClass().getName().equals(cl.getName()) ) {
+            if (!this.rootInstace.getClass().getName().equals(cl.getName())) {
                 if (cl.getAnnotation(Bean.class) != null || cl.getAnnotation(Service.class) != null || cl.getAnnotation(Component.class) != null) {
                     if (cl.getAnnotation(Service.class) != null || ((Bean) cl.getAnnotation(Bean.class)).scope() == Scope.Singleton) {
                         singletons.putIfAbsent(cl.getName(), cl.newInstance());
