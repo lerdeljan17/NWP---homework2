@@ -39,7 +39,8 @@ public class DI_Engine {
             Enumeration<URL> roots = classLoader.getResources("");
             System.out.println();
             File root = new File(roots.nextElement().getPath());
-            getClasses(root);
+            //System.out.println(root);
+            getClasses(root,root.toString());
             System.out.println(classNames);
         } catch (IOException e) {
             e.printStackTrace();
@@ -132,7 +133,7 @@ public class DI_Engine {
                     }
                 } else {
 
-                    // TODO: 3.11.2020. exception
+
                     //System.out.println("ovde treba izuzetak da ispali posto nema bean ni nista drugo");
                     throw new MissingAnnotationException(cl.getName());
                 }
@@ -152,17 +153,18 @@ public class DI_Engine {
         return o;
     }
 
-    public void getClasses(File root) {
+    public void getClasses(File root, String s) {
         for (File file : root.listFiles()) {
             if (file.isDirectory()) {
                 // Loop through its listFiles() recursively.
-                getClasses(file);
+                getClasses(file, s);
 
             } else {
                 String name = file.getPath();
                 String rName = file.getName();
                 if (name.contains(".class") && !myClasses.contains(rName)) {
-                    classNames.add(name.replace(".class", "").replaceAll("\\\\", ".").substring(name.indexOf("classes")).replace("classes.", ""));
+                    //classNames.add(name.replace(".class", "").replaceAll("\\\\", ".").substring(name.indexOf("classes")).replace("classes.", ""));
+                    classNames.add(name.replace(s+"\\","").replaceAll("\\\\", ".").replace(".class", ""));
                 }
 
                 // Check if it's a .class file or a .jar file and handle accordingly.
