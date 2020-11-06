@@ -20,7 +20,7 @@ public class Dependency_Supplier {
         for (String className : classNames) {
             try {
                 cl = Class.forName(className);
-                if (cl.isInterface() && (cl.getAnnotation(Bean.class) != null || cl.getAnnotation(Service.class) != null || cl.getAnnotation(Component.class) != null)) {
+                if (cl.isInterface()) {
                     String interFace = className;
                     HashMap<String, String> classesToAdd = new HashMap<>();
                     for (String name : classNames) {

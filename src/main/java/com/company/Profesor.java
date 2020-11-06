@@ -10,4 +10,8 @@ public class Profesor {
     @Qualifier(value = "Car")
     @Autowired(verbose = true)
     Vozilo v;
+
+    @Qualifier(value = "Car")
+    @Autowired(verbose = true)
+    Vozilo v1;
 }

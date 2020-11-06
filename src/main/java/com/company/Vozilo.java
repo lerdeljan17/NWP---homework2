@@ -2,6 +2,6 @@ package com.company;
 
 import com.company.annotations.Bean;
 
-@Bean
+//@Bean
 public interface Vozilo {
 }
