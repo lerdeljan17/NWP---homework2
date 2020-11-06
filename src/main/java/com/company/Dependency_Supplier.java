@@ -20,6 +20,7 @@ public class Dependency_Supplier {
         for (String className : classNames) {
             try {
                 cl = Class.forName(className);
+                //odavde uklonio bean,service...
                 if (cl.isInterface()) {
                     String interFace = className;
                     HashMap<String, String> classesToAdd = new HashMap<>();
