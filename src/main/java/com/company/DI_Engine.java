@@ -79,6 +79,9 @@ public class DI_Engine {
             fieldMap = new HashMap<>();
             fields = cl.getDeclaredFields();
             for (Field f : fields) {
+//                if (f.getAnnotation(Qualifier.class) != null && f.getAnnotation(Autowired.class) == null ){
+//
+//                }
                 if (f.getAnnotation(Autowired.class) != null) {
                     if (!singletons.containsKey(f.getType().getName())) {
                         String type = f.getType().getName();
