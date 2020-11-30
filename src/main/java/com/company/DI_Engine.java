@@ -47,7 +47,7 @@ public class DI_Engine {
         }
 
         dependency_supplier = new Dependency_Supplier(classNames);
-        scanFile("com.company.Test", rootInstace);
+        scanFile(rootInstace.getClass().getName(), rootInstace);
 
 
 //        try {
